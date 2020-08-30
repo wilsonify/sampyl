@@ -1,10 +1,8 @@
-import sys
-
-sys.path.append('..')
-import sampyl as smp
+import matplotlib
 from sampyl import np
 from sampyl.diagnostics import diagnostics
-import matplotlib
+from sampyl.samplers.NUTS import NUTS
+from sampyl.samplers.metropolis import Metropolis
 
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
@@ -21,10 +19,10 @@ def logp(x, y):
 
 start = {'x': 1., 'y': 1.}
 # compare the performance of NUTS and Metropolis by effective sample size
-nuts = smp.NUTS(logp, start)
+nuts = NUTS(logp, start)
 nuts_trace = nuts.sample(1000)
 
-met = smp.Metropolis(logp, start)
+met = Metropolis(logp, start)
 met_trace = met.sample(1000)
 
 # compute effective sample size based on autocorrelation

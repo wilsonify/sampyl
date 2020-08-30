@@ -1,5 +1,5 @@
 import numpy as np
-import statsmodels.tsa.stattools as stattools
+from statsmodels.tsa import stattools
 
 
 def compute_r_hat(theta_chains):
