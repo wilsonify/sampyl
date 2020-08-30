@@ -1,21 +1,25 @@
-from itertools import count
 import time
 import unicodedata
+from itertools import count
 
-from ..core import np, auto_grad_logp, AUTOGRAD
-from ..parallel import parallel
-from ..progressbar import update_progress
-from ..state import State, func_var_names
-from ..posterior import init_posterior
+from sampyl.state import State, func_var_names
+from sampyl.posterior import init_posterior
+from sampyl.core import np, auto_grad_logp, AUTOGRAD
+from sampyl.parallel import parallel
+from sampyl.progressbar import update_progress
 
 
 class Sampler(object):
-    def __init__(self, logp, start,
-                 grad_logp=None,
-                 scale=None,
-                 condition=None,
-                 grad_logp_flag=True,
-                 random_seed=None):
+    def __init__(
+            self,
+            logp,
+            start,
+            grad_logp=None,
+            scale=None,
+            condition=None,
+            grad_logp_flag=True,
+            random_seed=None,
+    ):
 
         self.model = init_posterior(logp, grad_logp, grad_logp_flag)
 
@@ -25,11 +29,11 @@ class Sampler(object):
 
         self.state = State.fromkeys(self.var_names)
 
-        # Making sure we normalize here because if some parameters use unicode 
+        # Making sure we normalize here because if some parameters use unicode
         # symbols, they are normalized through the func_var_names function. Then, we
         # need to normalize them here as well or the keys in start won't match the
         # keys from var_names
-        start = {unicodedata.normalize('NFKC', key): val for key, val in start.items()}
+        start = {unicodedata.normalize("NFKC", key): val for key, val in start.items()}
 
         self.state.update(start)
 
@@ -66,7 +70,9 @@ class Sampler(object):
         self.state = State([(var, frozen_state[var]) for var in free_vars])
         self._logp_func = conditional_logp
         if self._grad_logp_flag and AUTOGRAD:
-            self.model.grad_func = auto_grad_logp(conditional_logp, names=self.state.keys())
+            self.model.grad_func = auto_grad_logp(
+                conditional_logp, names=self.state.keys()
+            )
         self.model.logp_func = self._logp_func
         state = self.step()
 
@@ -87,7 +93,7 @@ class Sampler(object):
         pass
 
     def sample(self, num, burn=0, thin=1, n_chains=1, progress_bar=True):
-        
+
         """ 
             Sample from :math:`P(X)`
 
@@ -108,45 +114,48 @@ class Sampler(object):
         if self.seed is not None:
             np.random.seed(self.seed)
 
-        if AUTOGRAD and hasattr(self.model, 'grad_func') \
-                    and self.model.grad_func is None:
+        if (
+                AUTOGRAD
+                and hasattr(self.model, "grad_func")
+                and self.model.grad_func is None
+        ):
             self.model.grad_func = auto_grad_logp(self._logp_func)
 
         # Constructing a recarray to store samples
-        dtypes = [(var, 'f8', np.shape(self.state[var])) for var in self.state]
+        dtypes = [(var, "f8", np.shape(self.state[var])) for var in self.state]
         samples = np.zeros(num, dtype=dtypes).view(np.recarray)
 
         if n_chains != 1:
-            return parallel(self, n_chains, samples,
-                            burn=burn, thin=thin,
-                            progress_bar=progress_bar)
+            return parallel(
+                self, n_chains, samples, burn=burn, thin=thin, progress_bar=progress_bar
+            )
 
         if self.sampler is None:
             self.sampler = (self.step() for _ in count(start=0, step=1))
 
-        start_time = time.time() # For progress bar
-        
-        # Start sampling, add each 
+        start_time = time.time()  # For progress bar
+
+        # Start sampling, add each
         for i in range(num):
             samples[i] = tuple(next(self.sampler).values())
 
             if progress_bar and time.time() - start_time > 1:
-                update_progress(i+1, num)
+                update_progress(i + 1, num)
                 start_time = time.time()
 
         if progress_bar:
-            update_progress(i+1, num, end=True)
+            update_progress(i + 1, num, end=True)
 
         # Clearing the cache after a run to save on memory.
         self.model.clear_cache()
 
         return samples[burn::thin]
 
-
     def __call__(self, num, burn=0, thin=1, n_chains=1, progress_bar=True):
 
-        return self.sample(num, burn=burn, thin=thin, n_chains=n_chains, 
-                           progress_bar=progress_bar)
+        return self.sample(
+            num, burn=burn, thin=thin, n_chains=n_chains, progress_bar=progress_bar
+        )
 
 
 def default_scale(scale, state):

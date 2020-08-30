@@ -9,13 +9,12 @@ Module implementing Hamiltonian MCMC sampler.
 
 """
 
-
 from __future__ import division
 
-from ..core import np
-from ..state import State
-from .base import Sampler
-from ..model import Model
+from sampyl.samplers.base import Sampler
+from sampyl.state import State
+from sampyl.core import np
+
 
 
 class Hamiltonian(Sampler):
@@ -51,7 +50,7 @@ class Hamiltonian(Sampler):
 
         super(Hamiltonian, self).__init__(logp, start, **kwargs)
 
-        self.step_size = step_size / (np.hstack(self.state.values()).size)**(1/4)
+        self.step_size = step_size / (np.hstack(self.state.values()).size) ** (1 / 4)
         self.n_steps = n_steps
 
     def step(self):
@@ -73,14 +72,13 @@ class Hamiltonian(Sampler):
 
     @property
     def acceptance_rate(self):
-        return self._accepted/self._sampled
+        return self._accepted / self._sampled
 
 
 def leapfrog(x, r, step_size, grad):
-
-    r1 = r + step_size/2*grad(x)
-    x1 = x + step_size*r1
-    r2 = r1 + step_size/2*grad(x1)
+    r1 = r + step_size / 2 * grad(x)
+    x1 = x + step_size * r1
+    r2 = r1 + step_size / 2 * grad(x1)
     return x1, r2
 
 
@@ -88,12 +86,12 @@ def accept(x, y, r_0, r, logp):
     E_new = energy(logp, y, r)
     E = energy(logp, x, r_0)
     A = np.min(np.array([0, E_new - E]))
-    return (np.log(np.random.rand()) < A)
+    return np.log(np.random.rand()) < A
 
 
 def energy(logp, x, r):
     r1 = r.tovector()
-    return logp(x) - 0.5*np.dot(r1, r1)
+    return logp(x) - 0.5 * np.dot(r1, r1)
 
 
 def initial_momentum(state, scale):

@@ -1,5 +1,5 @@
-from ..core import np
-from .base import Sampler
+from sampyl.core import np
+from sampyl.samplers.base import Sampler
 
 
 class Chain(Sampler):
@@ -27,7 +27,6 @@ class Chain(Sampler):
         self.steps = steps
 
     def step(self):
-
         for sampler in self.steps:
             sampler.state = self.state
             state = sampler._conditional_step()

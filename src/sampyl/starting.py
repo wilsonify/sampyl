@@ -10,14 +10,14 @@ value for the samplers.
 
 """
 
-from .core import np, AUTOGRAD, auto_grad_logp
+from sampyl.core import AUTOGRAD, auto_grad_logp
+from sampyl.state import State
 from scipy.optimize import minimize
-from .state import State
 
 
-def find_MAP(logp, start, grad_logp=None,
-             method=None, bounds=None, verbose=False, **kwargs):
-
+def find_MAP(
+        logp, start, grad_logp=None, method=None, bounds=None, verbose=False, **kwargs
+):
     """ Find the maximum a posteriori of logp. Requires a starting state.
         Optimizing is done with scipy.optimize.minimize. Documentation can be
         found here:
@@ -75,10 +75,10 @@ def find_MAP(logp, start, grad_logp=None,
         # it back into a state form so we can pass each variable to logp if
         # there are multiple variables
         args = state.fromvector(x)
-        return -1*logp(*args.values())
+        return -1 * logp(*args.values())
 
     if AUTOGRAD and grad_logp is None:
-        jac = auto_grad_logp(neg_logp)['x']
+        jac = auto_grad_logp(neg_logp)["x"]
     else:
         jac = grad_logp
 
@@ -89,12 +89,13 @@ def find_MAP(logp, start, grad_logp=None,
     if bounds is not None:
         bnds = []
         for var in bounds:
-            bnds.extend([bounds[var]]*state.size()[var])
+            bnds.extend([bounds[var]] * state.size()[var])
     else:
         bnds = None
 
-    results = minimize(neg_logp, state.tovector(),
-                       jac=jac, method=method, bounds=bnds, **kwargs)
+    results = minimize(
+        neg_logp, state.tovector(), jac=jac, method=method, bounds=bnds, **kwargs
+    )
 
     if verbose:
         print(results)

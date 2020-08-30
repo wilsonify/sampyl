@@ -11,9 +11,10 @@ Module implementing Metropolis-Hastings MCMC sampler.
 
 from __future__ import division
 
-from ..core import np
-from ..state import State
-from .base import Sampler
+from sampyl.samplers.base import Sampler
+from sampyl.state import State
+from sampyl.core import np
+
 
 
 class Metropolis(Sampler):
@@ -48,9 +49,10 @@ class Metropolis(Sampler):
     """
 
     def __init__(self, logp, start, tune_interval=100, **kwargs):
-                
-        super(Metropolis, self).__init__(logp, start, None, grad_logp_flag=False,
-                                         **kwargs)
+
+        super(Metropolis, self).__init__(
+            logp, start, None, grad_logp_flag=False, **kwargs
+        )
         self.tune_interval = tune_interval
         self._steps_until_tune = tune_interval
         self._accepted = 0
@@ -74,10 +76,10 @@ class Metropolis(Sampler):
 
     @property
     def acceptance(self):
-        return self._accepted/self._sampled
+        return self._accepted / self._sampled
 
     def __repr__(self):
-        return 'Metropolis-Hastings sampler'
+        return "Metropolis-Hastings sampler"
 
 
 def proposal(state, scale):

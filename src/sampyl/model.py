@@ -10,7 +10,7 @@ Model for building posterior distributions from
 """
 
 
-class Model():
+class Model:
     """ Convenience class for building models from log-priors and 
         log-likelihood.
 
@@ -33,12 +33,11 @@ class Model():
                 return model()
 
     """
-    def __init__(self):
 
+    def __init__(self):
         self._logps = []
 
     def logp(self):
-
         return sum(self._logps)
 
     def add(self, *args):

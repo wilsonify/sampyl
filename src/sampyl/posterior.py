@@ -12,11 +12,12 @@ Models of a posterior distribution for access to logp and grad functions.
 import collections
 
 from sampyl.core import auto_grad_logp, np
-from sampyl.state import func_var_names, State
+from sampyl.state import func_var_names
 
 
 class BasePosterior(object):
     """ Base posterior model for subclassing. """
+
     def __init__(self):
         self._logp_cache = {}
         self._grad_cache = {}
@@ -103,6 +104,7 @@ class Posterior(BasePosterior):
     
 
     """
+
     def __init__(self, logp_func, grad_func=None, grad_logp_flag=False):
         super(Posterior, self).__init__()
         self.logp_func = check_logp(logp_func)
@@ -170,20 +172,20 @@ def grad_vec(grad_logp, state):
     """ grad_logp should be a function, or a dictionary of gradient functions, 
         respective to each parameter in logp
     """
-    if hasattr(grad_logp, '__call__'):
+    if hasattr(grad_logp, "__call__"):
         # grad_logp is a single function
         return np.array([grad_logp(*state.values())])
     else:
         # got a dictionary instead
 
-        grads = {each:grad_logp[each](*state.values()) for each in state}
+        grads = {each: grad_logp[each](*state.values()) for each in state}
         grads_state = state.copy()
         grads_state.update(grads)
         return grads_state
 
 
 def check_logp(logp):
-    if not hasattr(logp, '__call__'):
+    if not hasattr(logp, "__call__"):
         raise TypeError("logp must be a function")
     elif logp.__code__.co_argcount == 0:
         raise ValueError("logp must have arguments")
@@ -195,11 +197,13 @@ def check_grad_logp(logp, grad_logp, grad_logp_flag):
     var_names = func_var_names(logp)
     if grad_logp_flag and grad_logp is None:
         return auto_grad_logp(logp)
-    elif grad_logp_flag and grad_logp != 'logp':
+    elif grad_logp_flag and grad_logp != "logp":
         # User defined grad_logp function
         if len(var_names) > 1 and len(grad_logp) != len(var_names):
-            raise TypeError("grad_logp must be iterable with length equal"
-                                " to the number of parameters in logp.")
+            raise TypeError(
+                "grad_logp must be iterable with length equal"
+                " to the number of parameters in logp."
+            )
         else:
             return grad_logp
     else:

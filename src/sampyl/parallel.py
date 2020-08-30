@@ -9,33 +9,29 @@ This module implements generating multiple Markov chains in parallel.
 
 """
 
-
 from __future__ import division
 
 import copy
 from functools import partial
 from multiprocessing import Pool
 
-from .core import np, AUTOGRAD
-from .samplers import *
-from .distributions import *
-from .state import State
-from .progressbar import update_progress
+from sampyl.core import AUTOGRAD
+from sampyl.distributions import *
+from sampyl.progressbar import update_progress
 
 
 def f(n_samples, sampler):
-        trace = sampler.sample(n_samples, progress_bar=False)
-        return trace
+    trace = sampler.sample(n_samples, progress_bar=False)
+    return trace
 
 
 def parallel(sampler, n_chains, samples, progress_bar=True, **kwargs):
-
     samplers = init_samplers(sampler, n_chains)
     chains = [copy.copy(samples) for _ in range(n_chains)]
 
     N_batches = 10
     n_samples = len(samples)
-    batches = [n_samples//N_batches]*N_batches
+    batches = [n_samples // N_batches] * N_batches
     batches.append(n_samples % N_batches)
 
     pool = Pool(processes=n_chains)
@@ -50,31 +46,34 @@ def parallel(sampler, n_chains, samples, progress_bar=True, **kwargs):
 
         for new, chain in zip(new_chains, chains):
             for j in range(N):
-                chain[i*N + j] = new[j]
+                chain[i * N + j] = new[j]
 
         if progress_bar:
-                update_progress(N*(i+1), n_samples)
+            update_progress(N * (i + 1), n_samples)
 
     if progress_bar:
         update_progress(n_samples, n_samples, end=True)
 
-    burn, thin = kwargs.get('burn'), kwargs.get('thin')
+    burn, thin = kwargs.get("burn"), kwargs.get("thin")
     chains = [chain[burn::thin] for chain in chains]
     return chains
 
 
 def init_samplers(sampler, n_chains, chains=None):
-
     samplers = [copy.deepcopy(sampler) for _ in range(n_chains)]
     for sampler in samplers:
         # Randomize start and seed
-        sampler.state.update({var: val + np.random.randn(*np.shape(val))*val/5
-                              for var, val in sampler.state.items()})
-        sampler.seed = np.random.randint(0, 2**16)
+        sampler.state.update(
+            {
+                var: val + np.random.randn(*np.shape(val)) * val / 5
+                for var, val in sampler.state.items()
+            }
+        )
+        sampler.seed = np.random.randint(0, 2 ** 16)
 
         # Can't pickle autograd grad functions, so clear it here, then
         # build them when sample method is called.
-        if AUTOGRAD and hasattr(sampler.model, 'grad_func'):
+        if AUTOGRAD and hasattr(sampler.model, "grad_func"):
             sampler.model.grad_func = None
 
     if chains is not None:
@@ -82,7 +81,8 @@ def init_samplers(sampler, n_chains, chains=None):
         # in each chain. This ensures that each batch starts off where
         # the previous one left off.
         for sampler, chain in zip(samplers, chains):
-            sampler.state.update({var: val for var, val
-                                  in zip(sampler.state, chain[-1])})
+            sampler.state.update(
+                {var: val for var, val in zip(sampler.state, chain[-1])}
+            )
 
     return samplers

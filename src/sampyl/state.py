@@ -8,12 +8,9 @@ Module for State object which stores sampler states in a dictionary.
 :license: MIT, see LICENSE for more details.
 
 """
-
-from __future__ import division
-
-import sampyl
-from sampyl.core import np
 import collections
+
+from sampyl.core import np
 
 
 class State(collections.OrderedDict):
@@ -35,7 +32,7 @@ class State(collections.OrderedDict):
         var_sizes = self.size()
         i = 0
         for var in self:
-            self[var] = np.squeeze(vec[i:(i+var_sizes[var])])
+            self[var] = np.squeeze(vec[i: (i + var_sizes[var])])
             i += var_sizes[var]
         return self
 
@@ -50,7 +47,7 @@ class State(collections.OrderedDict):
         var_sizes = state.size()
         i = 0
         for var in state:
-            vals.append(np.squeeze(vec[i:(i+var_sizes[var])]))
+            vals.append(np.squeeze(vec[i: (i + var_sizes[var])]))
             i += var_sizes[var]
         return State(zip(state.keys(), vals))
 
@@ -65,29 +62,31 @@ class State(collections.OrderedDict):
 
     def __add__(self, other):
         if isinstance(other, int) or isinstance(other, float):
-            return handle_number(self, other, '__add__')
+            return handle_number(self, other, "__add__")
         elif isinstance(other, collections.Iterable):
-            return handle_iterable(self, other, '__add__')
+            return handle_iterable(self, other, "__add__")
         else:
             raise TypeError("Addition not supported for State and {}".format(other))
 
     def __sub__(self, other):
         if isinstance(other, int) or isinstance(other, float):
-            return handle_number(self, other, '__sub__')
+            return handle_number(self, other, "__sub__")
         elif isinstance(other, collections.Iterable):
-            return handle_iterable(self, other, '__sub__')
+            return handle_iterable(self, other, "__sub__")
         else:
             raise TypeError("Subtraction not supported for State and {}".format(other))
 
     def __mul__(self, other):
         if isinstance(other, int) or isinstance(other, float):
-            return handle_number(self, other, '__mul__')
+            return handle_number(self, other, "__mul__")
         else:
-            raise TypeError("Multiplication not supported for State and {}".format(other))
+            raise TypeError(
+                "Multiplication not supported for State and {}".format(other)
+            )
 
     def __truediv__(self, other):
         if isinstance(other, int) or isinstance(other, float):
-            return handle_number(self, other, '__truediv__')
+            return handle_number(self, other, "__truediv__")
         else:
             raise TypeError("Division not supported for State and {}".format(other))
 
@@ -107,15 +106,15 @@ class State(collections.OrderedDict):
 
     def __rsub__(self, other):
         if isinstance(other, int) or isinstance(other, float):
-            return handle_number(self, other, '__rsub__')
+            return handle_number(self, other, "__rsub__")
         elif isinstance(other, collections.Iterable):
-            return handle_iterable(self, other, '__rsub__')
+            return handle_iterable(self, other, "__rsub__")
         else:
             raise TypeError("Subtraction not supported for State and {}".format(other))
 
     def __rtruediv__(self, other):
         if isinstance(other, int) or isinstance(other, float):
-            return handle_number(self, other, '__truediv__')
+            return handle_number(self, other, "__truediv__")
         else:
             raise TypeError("Division not supported for State and {}".format(other))
 
@@ -137,8 +136,10 @@ def handle_iterable(state, other, operator):
         # So check if both are numpy arrays, then add
         # But first, we can only do this is len(state) is 1.
         if len(state) != 1:
-            raise ValueError("Can't broadcast with sizes state: {},"
-                             " other: {}".format(len(state), len(other)))
+            raise ValueError(
+                "Can't broadcast with sizes state: {},"
+                " other: {}".format(len(state), len(other))
+            )
         var = list(state.keys())[0]
         val = state[var]
         if type(val) == np.ndarray and type(other) == np.ndarray:
@@ -153,12 +154,14 @@ def handle_iterable(state, other, operator):
         vals = [getattr(state[var], operator)(each) for var, each in zip(state, other)]
     return State([(var, val) for var, val in zip(state, vals)])
 
+
 def special_math_func(state, other, operator):
     """ A function for special math functions used in the State class.
         So, we need to handle state + 1, state + np.array(),
         state1 + state2, etc. basically we want to do the same thing
         every time but with different operators.
     """
+    vals = [getattr(state[var], operator)(other[var]) for var in state]
     new = State([(var, vals) for var, each in zip(state, vals)])
 
     return new
@@ -166,5 +169,5 @@ def special_math_func(state, other, operator):
 
 def func_var_names(func):
     """ Returns a list of the argument names in func """
-    names = func.__code__.co_varnames[:func.__code__.co_argcount]
+    names = func.__code__.co_varnames[: func.__code__.co_argcount]
     return names

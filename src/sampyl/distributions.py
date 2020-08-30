@@ -10,6 +10,7 @@ These should all automatically sum the log likelihoods if `x` is a numpy array.
 """
 
 import numbers
+
 from sampyl.core import np
 from scipy.special import gamma
 
@@ -50,13 +51,15 @@ def normal(x, mu=0, sig=1):
     """
 
     if np.size(mu) != 1 and len(x) != len(mu):
-        raise ValueError('If mu is a vector, x must be the same size as mu.'
-                         ' We got x={}, mu={}'.format(x, mu))
+        raise ValueError(
+            "If mu is a vector, x must be the same size as mu."
+            " We got x={}, mu={}".format(x, mu)
+        )
 
     if fails_constraints(sig >= 0):
         return -np.inf
 
-    return np.sum(-np.log(sig) - (x - mu)**2/(2*sig**2))
+    return np.sum(-np.log(sig) - (x - mu) ** 2 / (2 * sig ** 2))
 
 
 def half_normal(x, mu=0, sig=1):
@@ -81,8 +84,8 @@ def uniform(x, lower=0, upper=1):
 
     if fails_constraints(x >= lower, x <= upper):
         return -np.inf
-    
-    return -np.size(x) * np.log(upper-lower)
+
+    return -np.size(x) * np.log(upper - lower)
 
 
 def discrete_uniform(x, lower=0, upper=1):
@@ -102,14 +105,13 @@ def discrete_uniform(x, lower=0, upper=1):
 
     if isinstance(x, np.ndarray):
         if x.dtype != np.int_:
-            raise ValueError('x must be integers, function received {}'.format(x))
+            raise ValueError("x must be integers, function received {}".format(x))
         else:
-            return -np.size(x) * np.log(upper-lower)
+            return -np.size(x) * np.log(upper - lower)
     elif isinstance(x, numbers.Integral):
-        return -np.log(upper-lower)
+        return -np.log(upper - lower)
     else:
         return -np.inf
-
 
 
 def exponential(x, rate=1):
@@ -127,9 +129,11 @@ def exponential(x, rate=1):
         return -np.inf
 
     if np.size(rate) != 1 and len(x) != len(rate):
-        raise ValueError('If rate is a vector, x must be the same size as rate.'
-                         ' We got x={}, rate={}'.format(x, rate))
-    return np.sum(np.log(rate) - rate*x)
+        raise ValueError(
+            "If rate is a vector, x must be the same size as rate."
+            " We got x={}, rate={}".format(x, rate)
+        )
+    return np.sum(np.log(rate) - rate * x)
 
 
 def poisson(x, rate=1):
@@ -146,11 +150,13 @@ def poisson(x, rate=1):
 
     if fails_constraints(rate > 0):
         return -np.inf
-    
+
     if np.size(rate) != 1 and len(x) != len(rate):
-        raise ValueError('If rate is a vector, x must be the same size as rate.'
-                         ' We got x={}, rate={}'.format(x, rate))
-    return np.sum(x*np.log(rate)) - np.size(x)*rate
+        raise ValueError(
+            "If rate is a vector, x must be the same size as rate."
+            " We got x={}, rate={}".format(x, rate)
+        )
+    return np.sum(x * np.log(rate)) - np.size(x) * rate
 
 
 def binomial(k, n, p):
@@ -167,7 +173,7 @@ def binomial(k, n, p):
         raise ValueError("k must be less than or equal to n")
     if fails_constraints(0 < p, p < 1):
         return -np.inf
-    return np.sum(k*np.log(p) + (n-k)*np.log(1-p))
+    return np.sum(k * np.log(p) + (n - k) * np.log(1 - p))
 
 
 def bernoulli(k, p):
@@ -196,7 +202,7 @@ def beta(x, alpha=1, beta=1):
 
     if fails_constraints(0 < x, x < 1, alpha > 0, beta > 0):
         return -np.inf
-    return np.sum((alpha - 1)*np.log(x) + (beta - 1)*np.log(1-x))
+    return np.sum((alpha - 1) * np.log(x) + (beta - 1) * np.log(1 - x))
 
 
 def student_t(x, nu=1):
@@ -211,12 +217,16 @@ def student_t(x, nu=1):
                                      \\frac{1}{2}\log{\\nu} - \
                                      \\frac{\\nu+1}{2}\log{\left(1 + \\frac{x^2}{\\nu} \\right)}
     """
-    
+
     if fails_constraints(nu >= 1):
         return -np.inf
 
-    return np.sum(np.log(gamma(0.5*(nu + 1))) - np.log(gamma(nu/2.)) - \
-            0.5*np.log(nu) - (nu+1)/2*np.log(1+x**2/nu))
+    return np.sum(
+        np.log(gamma(0.5 * (nu + 1)))
+        - np.log(gamma(nu / 2.0))
+        - 0.5 * np.log(nu)
+        - (nu + 1) / 2 * np.log(1 + x ** 2 / nu)
+    )
 
 
 def laplace(x, mu, tau):
@@ -232,8 +242,8 @@ def laplace(x, mu, tau):
     """
     if fails_constraints(tau > 0):
         return -np.inf
-    
-    return np.sum(np.log(tau) - tau*np.abs(x - mu))
+
+    return np.sum(np.log(tau) - tau * np.abs(x - mu))
 
 
 def cauchy(x, alpha=0, beta=1):
@@ -252,7 +262,7 @@ def cauchy(x, alpha=0, beta=1):
     if fails_constraints(beta > 0):
         return -np.inf
 
-    return np.sum(-np.log(beta) - np.log(1 + ((x - alpha)/beta)**2))
+    return np.sum(-np.log(beta) - np.log(1 + ((x - alpha) / beta) ** 2))
 
 
 def half_cauchy(x, alpha=0, beta=1):
@@ -286,12 +296,4 @@ def weibull(x, l, k):
     if fails_constraints(l > 0, k > 0, x > 0):
         return -np.inf
 
-    return np.sum(np.log(k/l) + (k-1)*np.log(x/l) - (x/l)**k)
-
-
-
-
-
-
-
-
+    return np.sum(np.log(k / l) + (k - 1) * np.log(x / l) - (x / l) ** k)

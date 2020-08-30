@@ -9,14 +9,11 @@ This module implements No-U-Turn Sampler (NUTS).
 
 """
 
-
 from __future__ import division
 
-import collections
-
-from ..core import np
-from .base import Sampler
-from .hamiltonian import energy, leapfrog, initial_momentum
+from sampyl.core import np
+from sampyl.samplers.base import Sampler
+from sampyl.samplers.hamiltonian import initial_momentum, leapfrog, energy
 
 
 class NUTS(Sampler):
@@ -64,19 +61,23 @@ class NUTS(Sampler):
 
     """
 
-    def __init__(self, logp, start,
-                 step_size=0.25,
-                 adapt_steps=100,
-                 Emax=1000.,
-                 target_accept=0.65,
-                 gamma=0.05,
-                 k=0.75,
-                 t0=10.,
-                 **kwargs):
+    def __init__(
+            self,
+            logp,
+            start,
+            step_size=0.25,
+            adapt_steps=100,
+            Emax=1000.0,
+            target_accept=0.65,
+            gamma=0.05,
+            k=0.75,
+            t0=10.0,
+            **kwargs
+    ):
 
         super(NUTS, self).__init__(logp, start, **kwargs)
 
-        self.step_size = step_size / len(self.state.tovector())**(1/4.)
+        self.step_size = step_size / len(self.state.tovector()) ** (1 / 4.0)
         self.adapt_steps = adapt_steps
         self.Emax = Emax
         self.target_accept = target_accept
@@ -84,9 +85,9 @@ class NUTS(Sampler):
         self.k = k
         self.t0 = t0
 
-        self.Hbar = 0.
-        self.ebar = 1.
-        self.mu = np.log(self.step_size*10)
+        self.Hbar = 0.0
+        self.ebar = 1.0
+        self.mu = np.log(self.step_size * 10)
 
     def step(self):
         """ Perform one NUTS step."""
@@ -101,20 +102,21 @@ class NUTS(Sampler):
         j, n, s = 0, 1, 1
 
         while s == 1:
-            v = bern(0.5)*2 - 1
+            v = bern(0.5) * 2 - 1
             if v == -1:
-                xn, rn, _, _, x1, n1, s1, a, na = buildtree(xn, rn, u, v, j, e, x, r0,
-                                                            H, dH, self.Emax)
+                xn, rn, _, _, x1, n1, s1, a, na = buildtree(
+                    xn, rn, u, v, j, e, x, r0, H, dH, self.Emax
+                )
             else:
-                _, _, xp, rp, x1, n1, s1, a, na = buildtree(xp, rp, u, v, j, e, x, r0,
-                                                            H, dH, self.Emax)
+                _, _, xp, rp, x1, n1, s1, a, na = buildtree(
+                    xp, rp, u, v, j, e, x, r0, H, dH, self.Emax
+                )
 
-            if s1 == 1 and bern(np.min(np.array([1, n1/n]))):
+            if s1 == 1 and bern(np.min(np.array([1, n1 / n]))):
                 y = x1
 
             dx = (xp - xn).tovector()
-            s = s1 * (np.dot(dx, rn.tovector()) >= 0) * \
-                     (np.dot(dx, rp.tovector()) >= 0)
+            s = s1 * (np.dot(dx, rn.tovector()) >= 0) * (np.dot(dx, rp.tovector()) >= 0)
             n = n + n1
             j = j + 1
 
@@ -123,12 +125,12 @@ class NUTS(Sampler):
         else:
             # Adapt step size
             m = self._sampled + 1
-            w = 1./(m + self.t0)
-            self.Hbar = (1 - w)*self.Hbar + w*(self.target_accept - a/na)
-            log_e = self.mu - (m**.5/self.gamma)*self.Hbar
+            w = 1.0 / (m + self.t0)
+            self.Hbar = (1 - w) * self.Hbar + w * (self.target_accept - a / na)
+            log_e = self.mu - (m ** 0.5 / self.gamma) * self.Hbar
             self.step_size = np.exp(log_e)
-            z = m**(-self.k)
-            self.ebar = np.exp(z*log_e + (1 - z)*np.log(self.ebar))
+            z = m ** (-self.k)
+            self.ebar = np.exp(z * log_e + (1 - z) * np.log(self.ebar))
 
         self.state = y
         self._sampled += 1
@@ -142,33 +144,36 @@ def bern(p):
 
 def buildtree(x, r, u, v, j, e, x0, r0, H, dH, Emax):
     if j == 0:
-        x1, r1 = leapfrog(x, r, v*e, dH)
+        x1, r1 = leapfrog(x, r, v * e, dH)
         E = energy(H, x1, r1)
         E0 = energy(H, x0, r0)
         dE = E - E0
 
-        n1 = (np.log(u) - dE <= 0)
-        s1 = (np.log(u) - dE < Emax)
+        n1 = np.log(u) - dE <= 0
+        s1 = np.log(u) - dE < Emax
         return x1, r1, x1, r1, x1, n1, s1, np.min(np.array([1, np.exp(dE)])), 1
     else:
-        xn, rn, xp, rp, x1, n1, s1, a1, na1 = \
-            buildtree(x, r, u, v, j-1, e, x0, r0, H, dH, Emax)
+        xn, rn, xp, rp, x1, n1, s1, a1, na1 = buildtree(
+            x, r, u, v, j - 1, e, x0, r0, H, dH, Emax
+        )
         if s1 == 1:
             if v == -1:
-                xn, rn, _, _, x2, n2, s2, a2, na2 = \
-                    buildtree(xn, rn, u, v, j-1, e, x0, r0, H, dH, Emax)
+                xn, rn, _, _, x2, n2, s2, a2, na2 = buildtree(
+                    xn, rn, u, v, j - 1, e, x0, r0, H, dH, Emax
+                )
             else:
-                _, _, xp, rp, x2, n2, s2, a2, na2 = \
-                    buildtree(xp, rp, u, v, j-1, e, x0, r0, H, dH, Emax)
-            if bern(n2/max(n1 + n2, 1.)):
+                _, _, xp, rp, x2, n2, s2, a2, na2 = buildtree(
+                    xp, rp, u, v, j - 1, e, x0, r0, H, dH, Emax
+                )
+            if bern(n2 / max(n1 + n2, 1.0)):
                 x1 = x2
 
             a1 = a1 + a2
             na1 = na1 + na2
 
             dx = (xp - xn).tovector()
-            s1 = s2 * (np.dot(dx, rn.tovector()) >= 0) * \
-                      (np.dot(dx, rp.tovector()) >= 0)
+            s1 = (
+                    s2 * (np.dot(dx, rn.tovector()) >= 0) * (np.dot(dx, rp.tovector()) >= 0)
+            )
             n1 = n1 + n2
         return xn, rn, xp, rp, x1, n1, s1, a1, na1
-        
