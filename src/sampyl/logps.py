@@ -37,7 +37,7 @@ def normal_logp(mu, sig):
     return likelihood + mu_prior + sig_prior
 
 
-###### Poisson model ######
+# Poisson model
 before = np.random.poisson(7, size=12)
 after = np.random.poisson(9, size=12)
 
@@ -63,12 +63,10 @@ def poisson_with_grad(lam1, lam2):
     return poisson_logp(lam1, lam2), grad
 
 
-###### Linear model ##########
+# Linear model
 true_b = np.random.randn(5)
 x = np.random.rand(5, 10)
 data = np.dot(true_b, x)
-
-
 
 
 def linear_model_logp(b, sig):

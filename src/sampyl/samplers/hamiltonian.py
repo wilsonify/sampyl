@@ -11,10 +11,9 @@ Module implementing Hamiltonian MCMC sampler.
 
 from __future__ import division
 
+from sampyl.core import np
 from sampyl.samplers.base import Sampler
 from sampyl.state import State
-from sampyl.core import np
-
 
 
 class Hamiltonian(Sampler):

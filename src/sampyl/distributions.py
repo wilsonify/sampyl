@@ -35,7 +35,7 @@ def fails_constraints(*conditions):
 
 
 def normal(x, mu=0, sig=1):
-    """ Normal distribution log-likelihood.
+    r""" Normal distribution log-likelihood.
 
         :param x:  *int, float, np.array.*
         :param mu: (optional) *int, float, np.array.* 
@@ -70,7 +70,7 @@ def half_normal(x, mu=0, sig=1):
 
 
 def uniform(x, lower=0, upper=1):
-    """ Uniform distribution log-likelihood. Bounds are inclusive.
+    r""" Uniform distribution log-likelihood. Bounds are inclusive.
 
         :param x:  *int, float, np.array.*
         :param lower: (optional) *int, float.* Lower bound, default is 0.
@@ -89,7 +89,7 @@ def uniform(x, lower=0, upper=1):
 
 
 def discrete_uniform(x, lower=0, upper=1):
-    """ Discrete Uniform distribution log-likelihood.
+    r""" Discrete Uniform distribution log-likelihood.
 
         :param x:  *int, np.array[int].* 
         :param lower: (optional) *int, float.* Lower bound, default is 0.
@@ -115,7 +115,7 @@ def discrete_uniform(x, lower=0, upper=1):
 
 
 def exponential(x, rate=1):
-    """ Log likelihood of the exponential distribution. 
+    r""" Log likelihood of the exponential distribution.
 
         :param x:  *int, float, np.array.*
         :param rate: (optional) *int, float, np.array.* Rate parameter, :math:`\lambda > 0`. Defaults to 1.
@@ -137,7 +137,7 @@ def exponential(x, rate=1):
 
 
 def poisson(x, rate=1):
-    """ Poisson distribution log-likelihood.
+    r""" Poisson distribution log-likelihood.
 
         :param x:  *int, float, np.array.* Event count.
         :param rate: (optional) *int, float, np.array.* Rate parameter, :math:`\lambda > 0`. Defaults to 1.
@@ -160,7 +160,7 @@ def poisson(x, rate=1):
 
 
 def binomial(k, n, p):
-    """ Binomial distribution log-likelihood.
+    r""" Binomial distribution log-likelihood.
 
         :param k: *int, np.array.* Number of successes. :math:`k <= n`
         :param n: *int, np.array.* Number of trials. :math:`n > 0`
@@ -189,7 +189,7 @@ def bernoulli(k, p):
 
 
 def beta(x, alpha=1, beta=1):
-    """ Beta distribution log-likelihood.
+    r""" Beta distribution log-likelihood.
 
         :param x: *float, np.array.* :math:`0 < x < 1`
         :param alpha: (optional) *int, float.* Shape parameter, :math:`\\alpha > 0`
@@ -206,7 +206,7 @@ def beta(x, alpha=1, beta=1):
 
 
 def student_t(x, nu=1):
-    """ Student's t log-likelihood
+    r""" Student's t log-likelihood
 
         :param x: *int, float, np.array.*
         :param nu: (optional) *int.* Degress of freedom.
@@ -230,7 +230,7 @@ def student_t(x, nu=1):
 
 
 def laplace(x, mu, tau):
-    """ Laplace distribution log-likelihood 
+    r""" Laplace distribution log-likelihood
 
         :param x: *int, float, np.array.* :math:`-\infty < \mu < \infty`
         :param mu: *int, float, np.array.* Location parameter. :math:`-\infty < \mu < \infty`
@@ -247,7 +247,7 @@ def laplace(x, mu, tau):
 
 
 def cauchy(x, alpha=0, beta=1):
-    """ Cauchy distribution log-likelihood.
+    r""" Cauchy distribution log-likelihood.
 
         :param x: *int, float, np.array.* :math:`-\infty < x < \infty`
         :param alpha: *int, float, nparray.* Location parameter, :math:`-\infty < \\alpha < \infty`
@@ -266,7 +266,7 @@ def cauchy(x, alpha=0, beta=1):
 
 
 def half_cauchy(x, alpha=0, beta=1):
-    """ Half-Cauchy distribution log-likelihood (positive half).
+    r""" Half-Cauchy distribution log-likelihood (positive half).
 
         :param x: *int, float, np.array.* :math:`-\infty < x < \infty`
         :param alpha: *int, float, nparray.* Location parameter, :math:`-\infty < \\alpha < \infty`
@@ -284,16 +284,16 @@ def half_cauchy(x, alpha=0, beta=1):
     return cauchy(x, alpha=alpha, beta=beta)
 
 
-def weibull(x, l, k):
-    """ Weibull distribution log-likelihood. 
+def weibull(x, scale, shape):
+    r""" Weibull distribution log-likelihood. 
 
         :param x: *int, float, np.array.* :math:`x > 0`
-        :param l: *float.* Scale parameter. :math:`\\lambda > 0`
-        :param k: *float.* Shape parameter. :math:`k > 0`
+        :param scale: *float.* Scale parameter. :math:`\\lambda > 0`
+        :param shape: *float.* Shape parameter. :math:`k > 0`
 
     """
 
-    if fails_constraints(l > 0, k > 0, x > 0):
+    if fails_constraints(scale > 0, shape > 0, x > 0):
         return -np.inf
 
-    return np.sum(np.log(k / l) + (k - 1) * np.log(x / l) - (x / l) ** k)
+    return np.sum(np.log(shape / scale) + (shape - 1) * np.log(x / scale) - (x / scale) ** shape)

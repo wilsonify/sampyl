@@ -11,14 +11,13 @@ This module implements the slice sampler.
 
 from __future__ import division
 
+from sampyl.core import np
 from sampyl.samplers.base import Sampler
 from sampyl.state import State
-from sampyl.core import np
-
 
 
 class Slice(Sampler):
-    """ Slice sampler (Neal, 2003) for creating a Markov chain that 
+    r""" Slice sampler (Neal, 2003) for creating a Markov chain that
         leaves the the distribution defined by logp invariant
 
         For technical details, see Neal's paper:
